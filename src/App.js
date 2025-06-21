@@ -8,6 +8,7 @@ function App() {
     lastName: '',
     email: '',
     mobile: '',
+    country: '',
     zipcode: '',
     units: '',
     quantity: '',
@@ -35,6 +36,7 @@ function App() {
     if (!/^[a-zA-Z\s'-]+$/.test(formData.lastName)) newErrors.lastName = 'Last name cannot contain numbers or special characters';
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Please enter a valid email address';
     if (!/^\d{10,15}$/.test(formData.mobile)) newErrors.mobile = 'Please enter a valid mobile number (10-15 digits)';
+    if (!/^[a-zA-Z\s'-]+$/.test(formData.country)) newErrors.country = 'Country cannot contain numbers or special characters';
     if (!/^[a-zA-Z0-9\s-]{3,10}$/.test(formData.zipcode)) newErrors.zipcode = 'Please enter a valid zipcode';
     if (!formData.units) newErrors.units = 'Please select units of measurement';
     if (!formData.quantity || parseFloat(formData.quantity) < 0) newErrors.quantity = 'Please enter a valid positive quantity';
@@ -43,7 +45,7 @@ function App() {
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validate();
 
@@ -54,15 +56,33 @@ function App() {
 
     setLoading(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch('https://xl9cdzpsid.execute-api.us-west-2.amazonaws.com/dev/lead', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) throw new Error('Network response was not ok');
+
+      const result = await response.json();
+      console.log('Lambda response:', result);
+
       setSubmitted(true);
       setFormData(initialValues);
       setErrors({});
-      setLoading(false);
-
       setTimeout(() => setSubmitted(false), 5000);
-    }, 2000);
+    } catch (error) {
+      console.error('Submission error:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+
+  console.log('Form Data:', formData);
 
   return (
     <div className="form-container">
@@ -74,6 +94,7 @@ function App() {
           ['lastName', 'Last Name', 'text'],
           ['email', 'Email', 'email'],
           ['mobile', 'Mobile Number', 'tel'],
+          ['country', 'Country', 'text'],
           ['zipcode', 'Zipcode', 'text'],
           ['units', 'Units of Measurement', 'select', ['KW', 'MW', 'NOS']],
           ['quantity', 'Quantity', 'number'],
@@ -86,7 +107,7 @@ function App() {
         ].map(([name, label, type, options]) => (
           <div className="form-group" key={name}>
             <label htmlFor={name}>
-              {label}{['salutation', 'firstName', 'lastName', 'email', 'mobile', 'zipcode', 'units', 'quantity', 'hearAbout'].includes(name) && <span className="required">*</span>}
+              {label}{['salutation', 'firstName', 'lastName', 'email', 'mobile', 'country', 'zipcode', 'units', 'quantity', 'hearAbout'].includes(name) && <span className="required">*</span>}
             </label>
             {type === 'select' ? (
               <select name={name} id={name} value={formData[name]} onChange={handleChange}>
