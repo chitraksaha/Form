@@ -10,11 +10,15 @@ function App() {
     mobile: '',
     country: '',
     zipcode: '',
-    units: '',
-    quantity: '',
     hearAbout: '',
     company: '',
-    description: ''
+    description: '',
+    solutionType: '',
+    homeCapacity: '',
+    commercialUnit: '',
+    commercialCapacity: '',
+    moduleType: '',
+    moduleQuantity: ''
   };
 
   const [formData, setFormData] = useState(initialValues);
@@ -38,9 +42,25 @@ function App() {
     if (!/^\d{10,15}$/.test(formData.mobile)) newErrors.mobile = 'Please enter a valid mobile number (10-15 digits)';
     if (!/^[a-zA-Z\s'-]+$/.test(formData.country)) newErrors.country = 'Country cannot contain numbers or special characters';
     if (!/^[a-zA-Z0-9\s-]{3,10}$/.test(formData.zipcode)) newErrors.zipcode = 'Please enter a valid zipcode';
-    if (!formData.units) newErrors.units = 'Please select units of measurement';
-    if (!formData.quantity || parseFloat(formData.quantity) < 0) newErrors.quantity = 'Please enter a valid positive quantity';
     if (!formData.hearAbout) newErrors.hearAbout = 'Please select where you heard about us';
+    if (!formData.solutionType) newErrors.solutionType = 'Please select a solution type';
+
+    if (formData.solutionType === 'Home Solution') {
+      if (!formData.homeCapacity || parseFloat(formData.homeCapacity) <= 0)
+        newErrors.homeCapacity = 'Please enter valid capacity in KW';
+    }
+
+    if (formData.solutionType === 'Commercial & Industrial Solutions') {
+      if (!formData.commercialUnit) newErrors.commercialUnit = 'Please select a unit';
+      if (!formData.commercialCapacity || parseFloat(formData.commercialCapacity) <= 0)
+        newErrors.commercialCapacity = 'Please enter a valid capacity';
+    }
+
+    if (formData.solutionType === 'Only Module') {
+      if (!formData.moduleType) newErrors.moduleType = 'Please select the module type';
+      if (!formData.moduleQuantity || parseFloat(formData.moduleQuantity) <= 0)
+        newErrors.moduleQuantity = 'Please confirm the quantity';
+    }
 
     return newErrors;
   };
@@ -59,9 +79,7 @@ function App() {
     try {
       const response = await fetch('https://xl9cdzpsid.execute-api.us-west-2.amazonaws.com/dev/lead', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
 
@@ -81,7 +99,6 @@ function App() {
     }
   };
 
-
   console.log('Form Data:', formData);
 
   return (
@@ -96,18 +113,16 @@ function App() {
           ['mobile', 'Mobile Number', 'tel'],
           ['country', 'Country', 'text'],
           ['zipcode', 'Zipcode', 'text'],
-          ['units', 'Units of Measurement', 'select', ['KW', 'MW', 'NOS']],
-          ['quantity', 'Quantity', 'number'],
           ['hearAbout', 'Where did you hear about us?', 'select', [
             'Web Advertisement', 'Print Media', 'Social Media', 'Search Engine',
             'Trade Show', 'Employee Referral', 'External Referral', 'Tender',
             'Others', 'Special Projects'
           ]],
-          ['company', 'Company', 'text'],
+          ['company', 'Company', 'text']
         ].map(([name, label, type, options]) => (
           <div className="form-group" key={name}>
             <label htmlFor={name}>
-              {label}{['salutation', 'firstName', 'lastName', 'email', 'mobile', 'country', 'zipcode', 'units', 'quantity', 'hearAbout'].includes(name) && <span className="required">*</span>}
+              {label}{['salutation', 'firstName', 'lastName', 'email', 'mobile', 'country', 'zipcode', 'hearAbout'].includes(name) && <span className="required">*</span>}
             </label>
             {type === 'select' ? (
               <select name={name} id={name} value={formData[name]} onChange={handleChange}>
@@ -120,6 +135,65 @@ function App() {
             {errors[name] && <div className="error-message">{errors[name]}</div>}
           </div>
         ))}
+
+        <div className="form-group">
+          <label htmlFor="solutionType">What type of Solution are you looking for?<span className="required">*</span></label>
+          <select name="solutionType" id="solutionType" value={formData.solutionType} onChange={handleChange}>
+            <option value="">Select Solution Type</option>
+            <option value="Home Solution">Home Solution</option>
+            <option value="Commercial & Industrial Solutions">Commercial & Industrial Solutions</option>
+            <option value="Only Module">Only Module</option>
+          </select>
+          {errors.solutionType && <div className="error-message">{errors.solutionType}</div>}
+        </div>
+
+        {formData.solutionType === 'Home Solution' && (
+          <div className="form-group">
+            <label htmlFor="homeCapacity">Capacity(KW)<span className="required">*</span></label>
+            <input type="number" name="homeCapacity" id="homeCapacity" value={formData.homeCapacity} onChange={handleChange} />
+            {errors.homeCapacity && <div className="error-message">{errors.homeCapacity}</div>}
+          </div>
+        )}
+
+        {formData.solutionType === 'Commercial & Industrial Solutions' && (
+          <>
+            <div className="form-group">
+              <label htmlFor="commercialUnit">Unit of Measurement<span className="required">*</span></label>
+              <select name="commercialUnit" id="commercialUnit" value={formData.commercialUnit} onChange={handleChange}>
+                <option value="">Select Unit</option>
+                <option value="KW">KW</option>
+                <option value="MW">MW</option>
+              </select>
+              {errors.commercialUnit && <div className="error-message">{errors.commercialUnit}</div>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="commercialCapacity">Capacity<span className="required">*</span></label>
+              <input type="number" name="commercialCapacity" id="commercialCapacity" value={formData.commercialCapacity} onChange={handleChange} />
+              {errors.commercialCapacity && <div className="error-message">{errors.commercialCapacity}</div>}
+            </div>
+          </>
+        )}
+
+        {formData.solutionType === 'Only Module' && (
+          <>
+            <div className="form-group">
+              <label htmlFor="moduleType">Module Type<span className="required">*</span></label>
+              <select name="moduleType" id="moduleType" value={formData.moduleType} onChange={handleChange}>
+                <option value="">Select Module Type</option>
+                <option value="DCR">DCR</option>
+                <option value="NON DCR">NON DCR</option>
+              </select>
+              {errors.moduleType && <div className="error-message">{errors.moduleType}</div>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="moduleQuantity">Quantity<span className="required">*</span></label>
+              <input type="number" name="moduleQuantity" id="moduleQuantity" value={formData.moduleQuantity} onChange={handleChange} />
+              {errors.moduleQuantity && <div className="error-message">{errors.moduleQuantity}</div>}
+            </div>
+          </>
+        )}
 
         <div className="form-group">
           <label htmlFor="description">Description</label>
