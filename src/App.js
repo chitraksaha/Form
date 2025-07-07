@@ -1,5 +1,27 @@
 import React, { useState } from 'react';
-import './App.css'; // Assuming you will put the CSS below into App.css
+import './App.css'; // Ensure your CSS file is correctly linked
+
+// SuccessPage Component - This will be displayed after successful form submission
+function SuccessPage({ onGoBack }) {
+  return (
+    <div className="form-container success-page-container"> {/* Reusing form-container styles */}
+      <h2 className="form-title">Thank You!</h2>
+      <div className="form-success" style={{ display: 'block', textAlign: 'center' }}>
+        <p style={{ fontSize: '1.2em', marginBottom: '15px' }}>
+          Your form has been submitted successfully.
+        </p>
+        <p>We appreciate you taking the time to fill it out.</p>
+      </div>
+      <button
+        onClick={onGoBack}
+        className="submit-btn" // Reusing submit button styles
+        style={{ marginTop: '30px', backgroundColor: '#28a745' }} // Green button for going back
+      >
+        Submit Another Response
+      </button>
+    </div>
+  );
+}
 
 function App() {
   const initialValues = {
@@ -23,16 +45,17 @@ function App() {
 
   const [formData, setFormData] = useState(initialValues);
   const [errors, setErrors] = useState({});
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [globalErrorMessage, setGlobalErrorMessage] = useState(''); // New state for global error
+  const [globalErrorMessage, setGlobalErrorMessage] = useState('');
+
+  // NEW STATE: Controls which "page" is shown (form or success page)
+  const [showSuccessPage, setShowSuccessPage] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: '' })); // Clear individual error on change
+    setErrors(prev => ({ ...prev, [name]: '' }));
     setGlobalErrorMessage(''); // Clear global error on any input change
-    setSubmitted(false); // Hide success message if user starts typing again
   };
 
   const validate = () => {
@@ -49,7 +72,6 @@ function App() {
     if (!formData.hearAbout) newErrors.hearAbout = 'Please select where you heard about us';
     if (!formData.solutionType) newErrors.solutionType = 'Please select a solution type';
 
-
     // Regex/Format Validations - these will show "Invalid Entry"
     if (formData.firstName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.firstName.trim())) newErrors.firstName = 'Invalid Entry';
     if (formData.lastName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.lastName.trim())) newErrors.lastName = 'Invalid Entry';
@@ -60,19 +82,19 @@ function App() {
 
     if (formData.solutionType === 'Home Solution') {
       if (!formData.homeCapacity || parseFloat(formData.homeCapacity) <= 0)
-        newErrors.homeCapacity = 'Invalid Entry'; // Changed to Invalid Entry
+        newErrors.homeCapacity = 'Invalid Entry';
     }
 
     if (formData.solutionType === 'Commercial & Industrial Solutions') {
       if (!formData.commercialUnit) newErrors.commercialUnit = 'Please select a unit';
       if (!formData.commercialCapacity || parseFloat(formData.commercialCapacity) <= 0)
-        newErrors.commercialCapacity = 'Invalid Entry'; // Changed to Invalid Entry
+        newErrors.commercialCapacity = 'Invalid Entry';
     }
 
     if (formData.solutionType === 'Only Module') {
       if (!formData.moduleType) newErrors.moduleType = 'Please select the module type';
       if (!formData.moduleQuantity || parseFloat(formData.moduleQuantity) <= 0)
-        newErrors.moduleQuantity = 'Invalid Entry'; // Changed to Invalid Entry
+        newErrors.moduleQuantity = 'Invalid Entry';
     }
 
     return newErrors;
@@ -80,24 +102,25 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(false); // Hide success message on new submission attempt
     setGlobalErrorMessage(''); // Clear global error on new submission attempt
 
     const newErrors = validate();
 
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors); // Set individual field errors
+      setErrors(newErrors);
 
-      // NEW LOGIC: Clear incorrect entry fields
+      // Clear incorrect entry fields
       const clearedData = { ...formData };
       for (const fieldName in newErrors) {
-        // Only clear if the field is an input/textarea and has an error
-        // For select fields, they usually reset to their default empty option if invalid.
-        if (initialValues.hasOwnProperty(fieldName)) { // Check if it's a field we manage
-            clearedData[fieldName] = initialValues[fieldName]; // Reset to initial empty value
+        if (initialValues.hasOwnProperty(fieldName)) {
+            // Only clear text/number inputs. Selects will naturally reset to their default option.
+            const fieldElement = document.getElementById(fieldName);
+            if (fieldElement && (fieldElement.tagName === 'INPUT' || fieldElement.tagName === 'TEXTAREA')) {
+                clearedData[fieldName] = initialValues[fieldName];
+            }
         }
       }
-      setFormData(clearedData); // Update formData with cleared values
+      setFormData(clearedData);
 
       setGlobalErrorMessage('Invalid Entry'); // Show global error message
       return; // Stop submission
@@ -106,6 +129,7 @@ function App() {
     setLoading(true);
 
     try {
+      // Your actual API call
       const response = await fetch('https://xl9cdzpsid.execute-api.us-west-2.amazonaws.com/dev/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -117,190 +141,194 @@ function App() {
       const result = await response.json();
       console.log('Lambda response:', result);
 
-      setSubmitted(true); // Show success message
-      setFormData(initialValues); // Reset entire form on success
+      // ON SUCCESS:
+      setFormData(initialValues); // Reset form data
       setErrors({}); // Clear all errors
       setGlobalErrorMessage(''); // Ensure global error is cleared
-      setTimeout(() => setSubmitted(false), 5000); // Hide success message after 5 seconds
+      setShowSuccessPage(true); // NEW: Show the success page
+
     } catch (error) {
       console.error('Submission error:', error);
-      // Optionally, set a global error message for submission failures
       setGlobalErrorMessage('Submission failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  // Function to go back to the form from the success page
+  const handleGoBackToForm = () => {
+    setShowSuccessPage(false);
+    // Form data is already reset by handleSubmit on success
+  };
+
   return (
-    <div className="form-container">
-      <h2 className="form-title">Authentication</h2>
-      <form onSubmit={handleSubmit} noValidate>
-        {[
-          ['salutation', 'Salutation', 'select', ['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'Prof.']],
-          ['firstName', 'First Name', 'text'],
-          ['lastName', 'Last Name', 'text'],
-          ['email', 'Email', 'email'],
-          ['mobile', 'Mobile Number', 'tel'],
-          ['country', 'Country', 'text'],
-          ['zipcode', 'Zipcode', 'text'],
-          ['hearAbout', 'Where did you hear about us?', 'select', [
-            'Web Advertisement', 'Print Media', 'Social Media', 'Search Engine',
-            'Trade Show', 'Employee Referral', 'External Referral', 'Tender',
-            'Others', 'Special Projects'
-          ]],
-          ['company', 'Company', 'text']
-        ].map(([name, label, type, options]) => (
-          <div className="form-group" key={name}>
-            <label htmlFor={name}>
-              {label}{['salutation', 'firstName', 'lastName', 'email', 'mobile', 'country', 'zipcode', 'hearAbout'].includes(name) && <span className="required">*</span>}
-            </label>
-            {type === 'select' ? (
-              <select
-                name={name}
-                id={name}
-                value={formData[name]}
-                onChange={handleChange}
-                className={errors[name] ? 'error' : ''} // Apply error class
-              >
-                <option value="">Select {label}</option>
-                {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-              </select>
-            ) : (
-              <input
-                type={type}
-                name={name}
-                id={name}
-                value={formData[name]}
-                onChange={handleChange}
-                className={errors[name] ? 'error' : ''} // Apply error class
-              />
-            )}
-            {errors[name] && <div className="error-message">{errors[name]}</div>}
-          </div>
-        ))}
+    // Conditional rendering: show SuccessPage if showSuccessPage is true, otherwise show the form
+    showSuccessPage ? (
+      <SuccessPage onGoBack={handleGoBackToForm} />
+    ) : (
+      <div className="form-container">
+        <h2 className="form-title">Authentication</h2>
+        <form onSubmit={handleSubmit} noValidate>
+          {[
+            ['salutation', 'Salutation', 'select', ['Mr.', 'Ms.', 'Mrs.', 'Dr.', 'Prof.']],
+            ['firstName', 'First Name', 'text'],
+            ['lastName', 'Last Name', 'text'],
+            ['email', 'Email', 'email'],
+            ['mobile', 'Mobile Number', 'tel'],
+            ['country', 'Country', 'text'],
+            ['zipcode', 'Zipcode', 'text'],
+            ['hearAbout', 'Where did you hear about us?', 'select', [
+              'Web Advertisement', 'Print Media', 'Social Media', 'Search Engine',
+              'Trade Show', 'Employee Referral', 'External Referral', 'Tender',
+              'Others', 'Special Projects'
+            ]],
+            ['company', 'Company', 'text']
+          ].map(([name, label, type, options]) => (
+            <div className="form-group" key={name}>
+              <label htmlFor={name}>
+                {label}{['salutation', 'firstName', 'lastName', 'email', 'mobile', 'country', 'zipcode', 'hearAbout'].includes(name) && <span className="required">*</span>}
+              </label>
+              {type === 'select' ? (
+                <select
+                  name={name}
+                  id={name}
+                  value={formData[name]}
+                  onChange={handleChange}
+                  className={errors[name] ? 'error' : ''}
+                >
+                  <option value="">Select {label}</option>
+                  {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                </select>
+              ) : (
+                <input
+                  type={type}
+                  name={name}
+                  id={name}
+                  value={formData[name]}
+                  onChange={handleChange}
+                  className={errors[name] ? 'error' : ''}
+                />
+              )}
+              {errors[name] && <div className="error-message">{errors[name]}</div>}
+            </div>
+          ))}
 
-        <div className="form-group">
-          <label htmlFor="solutionType">What type of Solution are you looking for?<span className="required">*</span></label>
-          <select
-            name="solutionType"
-            id="solutionType"
-            value={formData.solutionType}
-            onChange={handleChange}
-            className={errors.solutionType ? 'error' : ''} // Apply error class
-          >
-            <option value="">Select Solution Type</option>
-            <option value="Home Solution">Home Solution</option>
-            <option value="Commercial & Industrial Solutions">Commercial & Industrial Solutions</option>
-            <option value="Only Module">Only Module</option>
-          </select>
-          {errors.solutionType && <div className="error-message">{errors.solutionType}</div>}
-        </div>
-
-        {formData.solutionType === 'Home Solution' && (
           <div className="form-group">
-            <label htmlFor="homeCapacity">Capacity(KW)<span className="required">*</span></label>
-            <input
-              type="number"
-              name="homeCapacity"
-              id="homeCapacity"
-              value={formData.homeCapacity}
+            <label htmlFor="solutionType">What type of Solution are you looking for?<span className="required">*</span></label>
+            <select
+              name="solutionType"
+              id="solutionType"
+              value={formData.solutionType}
               onChange={handleChange}
-              className={errors.homeCapacity ? 'error' : ''} // Apply error class
-            />
-            {errors.homeCapacity && <div className="error-message">{errors.homeCapacity}</div>}
+              className={errors.solutionType ? 'error' : ''}
+            >
+              <option value="">Select Solution Type</option>
+              <option value="Home Solution">Home Solution</option>
+              <option value="Commercial & Industrial Solutions">Commercial & Industrial Solutions</option>
+              <option value="Only Module">Only Module</option>
+            </select>
+            {errors.solutionType && <div className="error-message">{errors.solutionType}</div>}
+          </div>
+
+          {formData.solutionType === 'Home Solution' && (
+            <div className="form-group">
+              <label htmlFor="homeCapacity">Capacity(KW)<span className="required">*</span></label>
+              <input
+                type="number"
+                name="homeCapacity"
+                id="homeCapacity"
+                value={formData.homeCapacity}
+                onChange={handleChange}
+                className={errors.homeCapacity ? 'error' : ''}
+              />
+              {errors.homeCapacity && <div className="error-message">{errors.homeCapacity}</div>}
+            </div>
+          )}
+
+          {formData.solutionType === 'Commercial & Industrial Solutions' && (
+            <>
+              <div className="form-group">
+                <label htmlFor="commercialUnit">Unit of Measurement<span className="required">*</span></label>
+                <select
+                  name="commercialUnit"
+                  id="commercialUnit"
+                  value={formData.commercialUnit}
+                  onChange={handleChange}
+                  className={errors.commercialUnit ? 'error' : ''}
+                >
+                  <option value="">Select Unit</option>
+                  <option value="KW">KW</option>
+                  <option value="MW">MW</option>
+                </select>
+                {errors.commercialUnit && <div className="error-message">{errors.commercialUnit}</div>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="commercialCapacity">Capacity<span className="required">*</span></label>
+                <input
+                  type="number"
+                  name="commercialCapacity"
+                  id="commercialCapacity"
+                  value={formData.commercialCapacity}
+                  onChange={handleChange}
+                  className={errors.commercialCapacity ? 'error' : ''}
+                />
+                {errors.commercialCapacity && <div className="error-message">{errors.commercialCapacity}</div>}
+              </div>
+            </>
+          )}
+
+          {formData.solutionType === 'Only Module' && (
+            <>
+              <div className="form-group">
+                <label htmlFor="moduleType">Module Type<span className="required">*</span></label>
+                <select
+                  name="moduleType"
+                  id="moduleType"
+                  value={formData.moduleType}
+                  onChange={handleChange}
+                  className={errors.moduleType ? 'error' : ''}
+                >
+                  <option value="">Select Module Type</option>
+                  <option value="DCR">DCR</option>
+                  <option value="NON DCR">NON DCR</option>
+                </select>
+                {errors.moduleType && <div className="error-message">{errors.moduleType}</div>}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="moduleQuantity">Quantity<span className="required">*</span></label>
+                <input
+                  type="number"
+                  name="moduleQuantity"
+                  id="moduleQuantity"
+                  value={formData.moduleQuantity}
+                  onChange={handleChange}
+                  className={errors.moduleQuantity ? 'error' : ''}
+                />
+                {errors.moduleQuantity && <div className="error-message">{errors.moduleQuantity}</div>}
+              </div>
+            </>
+          )}
+
+          <div className="form-group">
+            <label htmlFor="description">Description</label>
+            <textarea name="description" id="description" value={formData.description} onChange={handleChange} placeholder="Tell us more about your inquiry..."></textarea>
+          </div>
+
+          <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} disabled={loading}>
+            {loading ? 'Submitting...' : 'Submit Form'}
+          </button>
+        </form>
+
+        {/* Global Error Message Display (only when form is shown and there's a global error) */}
+        {globalErrorMessage && (
+          <div id="globalErrorMessage" style={{ display: 'block' }}>
+            {globalErrorMessage}
           </div>
         )}
-
-        {formData.solutionType === 'Commercial & Industrial Solutions' && (
-          <>
-            <div className="form-group">
-              <label htmlFor="commercialUnit">Unit of Measurement<span className="required">*</span></label>
-              <select
-                name="commercialUnit"
-                id="commercialUnit"
-                value={formData.commercialUnit}
-                onChange={handleChange}
-                className={errors.commercialUnit ? 'error' : ''} // Apply error class
-              >
-                <option value="">Select Unit</option>
-                <option value="KW">KW</option>
-                <option value="MW">MW</option>
-              </select>
-              {errors.commercialUnit && <div className="error-message">{errors.commercialUnit}</div>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="commercialCapacity">Capacity<span className="required">*</span></label>
-              <input
-                type="number"
-                name="commercialCapacity"
-                id="commercialCapacity"
-                value={formData.commercialCapacity}
-                onChange={handleChange}
-                className={errors.commercialCapacity ? 'error' : ''} // Apply error class
-              />
-              {errors.commercialCapacity && <div className="error-message">{errors.commercialCapacity}</div>}
-            </div>
-          </>
-        )}
-
-        {formData.solutionType === 'Only Module' && (
-          <>
-            <div className="form-group">
-              <label htmlFor="moduleType">Module Type<span className="required">*</span></label>
-              <select
-                name="moduleType"
-                id="moduleType"
-                value={formData.moduleType}
-                onChange={handleChange}
-                className={errors.moduleType ? 'error' : ''} // Apply error class
-              >
-                <option value="">Select Module Type</option>
-                <option value="DCR">DCR</option>
-                <option value="NON DCR">NON DCR</option>
-              </select>
-              {errors.moduleType && <div className="error-message">{errors.moduleType}</div>}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="moduleQuantity">Quantity<span className="required">*</span></label>
-              <input
-                type="number"
-                name="moduleQuantity"
-                id="moduleQuantity"
-                value={formData.moduleQuantity}
-                onChange={handleChange}
-                className={errors.moduleQuantity ? 'error' : ''} // Apply error class
-              />
-              {errors.moduleQuantity && <div className="error-message">{errors.moduleQuantity}</div>}
-            </div>
-          </>
-        )}
-
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <textarea name="description" id="description" value={formData.description} onChange={handleChange} placeholder="Tell us more about your inquiry..."></textarea>
-        </div>
-
-        <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} disabled={loading}>
-          {loading ? 'Submitting...' : 'Submit Form'}
-        </button>
-      </form>
-
-      {/* Global Error Message Display */}
-      {globalErrorMessage && (
-        <div id="globalErrorMessage" style={{ display: 'block' }}>
-          {globalErrorMessage}
-        </div>
-      )}
-
-      {/* Success Message Display */}
-      {submitted && (
-        <div className="form-success" style={{ display: 'block' }}>
-          Form submitted successfully
-        </div>
-      )}
-    </div>
+      </div>
+    )
   );
 }
 
