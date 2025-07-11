@@ -73,28 +73,28 @@ function App() {
     if (!formData.solutionType) newErrors.solutionType = 'Please select a solution type';
 
     // Regex/Format Validations - these will show "Invalid Entry"
-    if (formData.firstName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.firstName.trim())) newErrors.firstName = 'Invalid Entry';
-    if (formData.lastName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.lastName.trim())) newErrors.lastName = 'Invalid Entry';
-    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = 'Invalid Entry';
-    if (formData.mobile.trim() && !/^\d{10,15}$/.test(formData.mobile.trim())) newErrors.mobile = 'Invalid Entry';
-    if (formData.country.trim() && !/^[a-zA-Z\s-]+$/.test(formData.country.trim())) newErrors.country = 'Invalid Entry';
-    if (formData.zipcode.trim() && !/^[a-zA-Z0-9\s-]{3,10}$/.test(formData.zipcode.trim())) newErrors.zipcode = 'Invalid Entry';
+    if (formData.firstName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.firstName.trim())) newErrors.firstName = 'Invalid Entry. Enter only characters.';
+    if (formData.lastName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.lastName.trim())) newErrors.lastName = 'Invalid Entry. Enter only characters';
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = 'Invalid Entry. Please fill a valid email ID.';
+    if (formData.mobile.trim() && !/^\d{10,15}$/.test(formData.mobile.trim())) newErrors.mobile = 'Invalid Entry. Enter only numbers.';
+    if (formData.country.trim() && !/^[a-zA-Z\s-]+$/.test(formData.country.trim())) newErrors.country = 'Invalid Entry. Enter only characters';
+    if (formData.zipcode.trim() && !/^[a-zA-Z0-9\s-]{3,10}$/.test(formData.zipcode.trim())) newErrors.zipcode = 'Invalid Entry. Please enter a valid pincode.';
 
     if (formData.solutionType === 'Home Solution') {
       if (!formData.homeCapacity || parseFloat(formData.homeCapacity) <= 0)
-        newErrors.homeCapacity = 'Invalid Entry';
+        newErrors.homeCapacity = 'Invalid Entry. Enter only numbers';
     }
 
     if (formData.solutionType === 'Commercial & Industrial Solutions') {
       if (!formData.commercialUnit) newErrors.commercialUnit = 'Please select a unit';
       if (!formData.commercialCapacity || parseFloat(formData.commercialCapacity) <= 0)
-        newErrors.commercialCapacity = 'Invalid Entry';
+        newErrors.commercialCapacity = 'Invalid Entry. Enter only numbers.';
     }
 
     if (formData.solutionType === 'Only Module') {
       if (!formData.moduleType) newErrors.moduleType = 'Please select the module type';
       if (!formData.moduleQuantity || parseFloat(formData.moduleQuantity) <= 0)
-        newErrors.moduleQuantity = 'Invalid Entry';
+        newErrors.moduleQuantity = 'Invalid Entry. Enter only numbers.';
     }
 
     return newErrors;
@@ -180,7 +180,7 @@ function App() {
             ['hearAbout', 'Where did you hear about us?', 'select', [
               'Web Advertisement', 'Print Media', 'Social Media', 'Search Engine',
               'Trade Show', 'Employee Referral', 'External Referral', 'Tender',
-              'Others', 'Special Projects'
+              'Others'
             ]],
             ['company', 'Company', 'text']
           ].map(([name, label, type, options]) => (
