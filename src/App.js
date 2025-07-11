@@ -47,7 +47,16 @@ function App() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [globalErrorMessage, setGlobalErrorMessage] = useState('');
-
+  const place_holder_lables = {
+    'salutation' : 'Mr.',
+    'firstName' : 'Vikram',
+    'lastName' : 'Roy',
+    'email' : 'roy@gmail.com',
+    'mobile' : '9998887770',
+    'country' : 'India',
+    'zipcode' : '700215',
+    'hearAbout' : 'Search Engine'
+  }
   // NEW STATE: Controls which "page" is shown (form or success page)
   const [showSuccessPage, setShowSuccessPage] = useState(false);
 
@@ -204,6 +213,7 @@ function App() {
                   type={type}
                   name={name}
                   id={name}
+                  placeholder={place_holder_lables[name]}
                   value={formData[name]}
                   onChange={handleChange}
                   className={errors[name] ? 'error' : ''}
