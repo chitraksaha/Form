@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css'; // Ensure your CSS file is correctly linked
 
 // SuccessPage Component - This will be displayed after successful form submission
@@ -47,6 +47,7 @@ function App() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [globalErrorMessage, setGlobalErrorMessage] = useState('');
+  // Clear global error message when the component mounts)
   const place_holder_lables = {
     'salutation' : 'Mr.',
     'firstName' : 'Vikram',
@@ -59,17 +60,17 @@ function App() {
   }
   // NEW STATE: Controls which "page" is shown (form or success page)
   const [showSuccessPage, setShowSuccessPage] = useState(false);
-
+  // const [errorMsg, setErrorMsg] = useState({});
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: '' }));
     setGlobalErrorMessage(''); // Clear global error on any input change
   };
-
-  const validate = () => {
+  
+  const validate = async () => {
     const newErrors = {};
-
+    
     // Required fields and their specific messages
     if (!formData.salutation) newErrors.salutation = 'Please select a salutation';
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
@@ -112,25 +113,29 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGlobalErrorMessage(''); // Clear global error on new submission attempt
-
-    const newErrors = validate();
-
+    setErrors({}); // Clear previous errors
+    
+    const newErrors = await validate();
+    // setErrorMsg(newErrors);
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-
+      console.log('Validation errors:', newErrors);
+      // Set errors in state
+      console.log('Validation errors in state:', errors);
+      
       // Clear incorrect entry fields
       const clearedData = { ...formData };
       for (const fieldName in newErrors) {
         if (initialValues.hasOwnProperty(fieldName)) {
-            // Only clear text/number inputs. Selects will naturally reset to their default option.
-            const fieldElement = document.getElementById(fieldName);
-            if (fieldElement && (fieldElement.tagName === 'INPUT' || fieldElement.tagName === 'TEXTAREA')) {
-                clearedData[fieldName] = initialValues[fieldName];
-            }
+          // Only clear text/number inputs. Selects will naturally reset to their default option.
+          const fieldElement = document.getElementById(fieldName);
+          if (fieldElement && (fieldElement.tagName === 'INPUT' || fieldElement.tagName === 'TEXTAREA')) {
+            clearedData[fieldName] = initialValues[fieldName];
+          }
         }
       }
-      setFormData(clearedData);
-
+      // setFormData(clearedData);
+      
+      setErrors(newErrors);
       setGlobalErrorMessage('Invalid Entry'); // Show global error message
       return; // Stop submission
     }
@@ -209,17 +214,30 @@ function App() {
                   {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               ) : (
-                <input
-                  type={type}
-                  name={name}
-                  id={name}
-                  placeholder={place_holder_lables[name]}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  className={errors[name] ? 'error' : ''}
-                />
+                <>
+                  <input
+                    type={type}
+                    name={name}
+                    id={name}
+                    placeholder={place_holder_lables[name]}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    className={errors[name] ? 'error' : ''}
+                  />
+                  <>
+                  {errors[name] && (
+                    <div style={{
+                      "color": "#e74c3c",
+                      "fontSize": "12px",
+                      "marginTop": "5px",
+                      "display": "block", 
+                    }}>{errors[name]}</div>
+                  )}
+                  </>
+                </>
+                
               )}
-              {errors[name] && <div className="error-message">{errors[name]}</div>}
+              {/* {errors[name] && <div className="error-message">{errors[name]}</div>} */}
             </div>
           ))}
 
