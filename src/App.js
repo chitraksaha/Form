@@ -49,14 +49,14 @@ function App() {
   const [globalErrorMessage, setGlobalErrorMessage] = useState('');
   // Clear global error message when the component mounts)
   const place_holder_lables = {
-    'salutation' : 'Mr.',
-    'firstName' : 'Vikram',
-    'lastName' : 'Roy',
-    'email' : 'roy@gmail.com',
-    'mobile' : '9998887770',
-    'country' : 'India',
-    'zipcode' : '700215',
-    'hearAbout' : 'Search Engine'
+    'salutation' : 'eg: Mr.',
+    'firstName' : 'eg: Vikram',
+    'lastName' : 'eg: Roy',
+    'email' : 'eg: roy@gmail.com',
+    'mobile' : 'eg: 9998887770',
+    'country' : 'eg: India',
+    'zipcode' : 'eg: 700215',
+    'hearAbout' : 'eg: Search Engine'
   }
   // NEW STATE: Controls which "page" is shown (form or success page)
   const [showSuccessPage, setShowSuccessPage] = useState(false);
@@ -86,9 +86,9 @@ function App() {
     if (formData.firstName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.firstName.trim())) newErrors.firstName = 'Invalid Entry. Enter only characters.';
     if (formData.lastName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.lastName.trim())) newErrors.lastName = 'Invalid Entry. Enter only characters';
     if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = 'Invalid Entry. Please fill a valid email ID.';
-    if (formData.mobile.trim() && !/^\d{10,15}$/.test(formData.mobile.trim())) newErrors.mobile = 'Invalid Entry. Enter only numbers.';
+    if (formData.mobile.trim() && !/^\d{10,15}$/.test(formData.mobile.trim())) newErrors.mobile = 'Invalid Entry. Enter your 10 mobile number.';
     if (formData.country.trim() && !/^[a-zA-Z\s-]+$/.test(formData.country.trim())) newErrors.country = 'Invalid Entry. Enter only characters';
-    if (formData.zipcode.trim() && !/^[a-zA-Z0-9\s-]{3,10}$/.test(formData.zipcode.trim())) newErrors.zipcode = 'Invalid Entry. Please enter a valid pincode.';
+    if (formData.zipcode.trim() && !/^[a-zA-Z0-9\s-]{3,10}$/.test(formData.zipcode.trim())) newErrors.zipcode = 'Invalid Entry. Please enter a valid 6-digit pincode.';
 
     if (formData.solutionType === 'Home Solution') {
       if (!formData.homeCapacity || parseFloat(formData.homeCapacity) <= 0)
@@ -351,7 +351,7 @@ function App() {
 
         {/* Global Error Message Display (only when form is shown and there's a global error) */}
         {globalErrorMessage && (
-          <div id="globalErrorMessage" style={{ display: 'block' }}>
+          <div id="globalErrorMessage" style={{ display: 'block' , color: '#e74c3c'}}>
             {globalErrorMessage}
           </div>
         )}
