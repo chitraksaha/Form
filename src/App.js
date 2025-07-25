@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css'; // Ensure your CSS file is correctly linked
 
 // SuccessPage Component - This will be displayed after successful form submission
@@ -47,20 +47,30 @@ function App() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [globalErrorMessage, setGlobalErrorMessage] = useState('');
-
+  // Clear global error message when the component mounts)
+  const place_holder_lables = {
+    'salutation' : 'eg: Mr.',
+    'firstName' : 'eg: Vikram',
+    'lastName' : 'eg: Roy',
+    'email' : 'eg: roy@gmail.com',
+    'mobile' : 'eg: 9998887770',
+    'country' : 'eg: India',
+    'zipcode' : 'eg: 700215',
+    'hearAbout' : 'eg: Search Engine'
+  }
   // NEW STATE: Controls which "page" is shown (form or success page)
   const [showSuccessPage, setShowSuccessPage] = useState(false);
-
+  // const [errorMsg, setErrorMsg] = useState({});
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: '' }));
     setGlobalErrorMessage(''); // Clear global error on any input change
   };
-
-  const validate = () => {
+  
+  const validate = async () => {
     const newErrors = {};
-
+    
     // Required fields and their specific messages
     if (!formData.salutation) newErrors.salutation = 'Please select a salutation';
     if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
@@ -73,28 +83,29 @@ function App() {
     if (!formData.solutionType) newErrors.solutionType = 'Please select a solution type';
 
     // Regex/Format Validations - these will show "Invalid Entry"
-    if (formData.firstName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.firstName.trim())) newErrors.firstName = 'Invalid Entry';
-    if (formData.lastName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.lastName.trim())) newErrors.lastName = 'Invalid Entry';
-    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = 'Invalid Entry';
-    if (formData.mobile.trim() && !/^\d{10,15}$/.test(formData.mobile.trim())) newErrors.mobile = 'Invalid Entry';
-    if (formData.country.trim() && !/^[a-zA-Z\s-]+$/.test(formData.country.trim())) newErrors.country = 'Invalid Entry';
-    if (formData.zipcode.trim() && !/^[a-zA-Z0-9\s-]{3,10}$/.test(formData.zipcode.trim())) newErrors.zipcode = 'Invalid Entry';
-
+    if (formData.firstName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.firstName.trim())) newErrors.firstName = 'Invalid Entry. Enter only characters.';
+    if (formData.lastName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.lastName.trim())) newErrors.lastName = 'Invalid Entry. Enter only characters';
+    if (formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) newErrors.email = 'Invalid Entry. Enter a valid email ID.';
+    if (formData.mobile.trim() && !/^\d{10,15}$/.test(formData.mobile.trim())) newErrors.mobile = 'Invalid Entry. Enter valid 10-digit mobile number.';
+    if (formData.country.trim() && !/^[a-zA-Z\s-]+$/.test(formData.country.trim())) newErrors.country = 'Invalid Entry. Enter only characters';
+    if (formData.zipcode.trim() && !/^\d{6}$/.test(formData.zipcode.trim())) newErrors.zipcode = 'Invalid Entry. Enter a valid 6-digit pincode.';
+    //if (formData.zipcode.trim() && !/^\d{6}$/.test(formData.zipcode.trim())) {newErrors.zipcode = 'Invalid Entry. Enter a valid 6-digit pincode.';}
+    
     if (formData.solutionType === 'Home Solution') {
       if (!formData.homeCapacity || parseFloat(formData.homeCapacity) <= 0)
-        newErrors.homeCapacity = 'Invalid Entry';
+        newErrors.homeCapacity = 'Invalid Entry. Enter only numbers';
     }
 
     if (formData.solutionType === 'Commercial & Industrial Solutions') {
       if (!formData.commercialUnit) newErrors.commercialUnit = 'Please select a unit';
       if (!formData.commercialCapacity || parseFloat(formData.commercialCapacity) <= 0)
-        newErrors.commercialCapacity = 'Invalid Entry';
+        newErrors.commercialCapacity = 'Invalid Entry. Enter only numbers.';
     }
 
     if (formData.solutionType === 'Only Module') {
       if (!formData.moduleType) newErrors.moduleType = 'Please select the module type';
       if (!formData.moduleQuantity || parseFloat(formData.moduleQuantity) <= 0)
-        newErrors.moduleQuantity = 'Invalid Entry';
+        newErrors.moduleQuantity = 'Invalid Entry. Enter only numbers.';
     }
 
     return newErrors;
@@ -103,25 +114,29 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setGlobalErrorMessage(''); // Clear global error on new submission attempt
-
-    const newErrors = validate();
-
+    setErrors({}); // Clear previous errors
+    
+    const newErrors = await validate();
+    // setErrorMsg(newErrors);
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-
+      console.log('Validation errors:', newErrors);
+      // Set errors in state
+      console.log('Validation errors in state:', errors);
+      
       // Clear incorrect entry fields
       const clearedData = { ...formData };
       for (const fieldName in newErrors) {
         if (initialValues.hasOwnProperty(fieldName)) {
-            // Only clear text/number inputs. Selects will naturally reset to their default option.
-            const fieldElement = document.getElementById(fieldName);
-            if (fieldElement && (fieldElement.tagName === 'INPUT' || fieldElement.tagName === 'TEXTAREA')) {
-                clearedData[fieldName] = initialValues[fieldName];
-            }
+          // Only clear text/number inputs. Selects will naturally reset to their default option.
+          const fieldElement = document.getElementById(fieldName);
+          if (fieldElement && (fieldElement.tagName === 'INPUT' || fieldElement.tagName === 'TEXTAREA')) {
+            clearedData[fieldName] = initialValues[fieldName];
+          }
         }
       }
-      setFormData(clearedData);
-
+      // setFormData(clearedData);
+      
+      setErrors(newErrors);
       setGlobalErrorMessage('Invalid Entry'); // Show global error message
       return; // Stop submission
     }
@@ -190,7 +205,7 @@ function App() {
             ['hearAbout', 'Where did you hear about us?', 'select', [
               'Web Advertisement', 'Print Media', 'Social Media', 'Search Engine',
               'Trade Show', 'Employee Referral', 'External Referral', 'Tender',
-              'Others', 'Special Projects'
+              'Others'
             ]],
             ['company', 'Company', 'text']
           ].map(([name, label, type, options]) => (
@@ -210,16 +225,30 @@ function App() {
                   {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                 </select>
               ) : (
-                <input
-                  type={type}
-                  name={name}
-                  id={name}
-                  value={formData[name]}
-                  onChange={handleChange}
-                  className={errors[name] ? 'error' : ''}
-                />
+                <>
+                  <input
+                    type={type}
+                    name={name}
+                    id={name}
+                    placeholder={place_holder_lables[name]}
+                    value={formData[name]}
+                    onChange={handleChange}
+                    className={errors[name] ? 'error' : ''}
+                  />
+                  <>
+                  {errors[name] && (
+                    <div style={{
+                      "color": "#e74c3c",
+                      "fontSize": "12px",
+                      "marginTop": "5px",
+                      "display": "block", 
+                    }}>{errors[name]}</div>
+                  )}
+                  </>
+                </>
+                
               )}
-              {errors[name] && <div className="error-message">{errors[name]}</div>}
+              {/* {errors[name] && <div className="error-message">{errors[name]}</div>} */}
             </div>
           ))}
 
@@ -333,7 +362,7 @@ function App() {
 
         {/* Global Error Message Display (only when form is shown and there's a global error) */}
         {globalErrorMessage && (
-          <div id="globalErrorMessage" style={{ display: 'block' }}>
+          <div id="globalErrorMessage" style={{ display: 'block' , color: '#e74c3c'}}>
             {globalErrorMessage}
           </div>
         )}
