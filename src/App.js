@@ -144,7 +144,7 @@ function App() {
     setLoading(true);
 
     try {
-      // Your actual API call
+      // Your actual API call done
       const response = await fetch('https://xl9cdzpsid.execute-api.us-west-2.amazonaws.com/dev/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
