@@ -141,6 +141,16 @@ function App() {
       const result = await response.json();
       console.log('Lambda response:', result);
 
+      if (response.status === 409) {
+      // pick up the message your Lambda returned
+        setGlobalErrorMessage(result.message || 'Duplicate lead detected.');
+        return;  // bail out before the "success" page
+      }
+
+      if (!response.ok) {
+        throw new Error(result.message || `Error ${response.status}`);
+      }
+
       // ON SUCCESS:
       setFormData(initialValues); // Reset form data
       setErrors({}); // Clear all errors
