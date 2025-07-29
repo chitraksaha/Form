@@ -162,17 +162,16 @@ function App() {
 
         const duplicateFieldErrors = {};
         if (isDuplicate) {
-          duplicateFieldErrors.email = 'Duplicate lead found';
-          duplicateFieldErrors.mobile = 'Duplicate lead found';
+            duplicateFieldErrors.email = 'Duplicate lead found';
+            duplicateFieldErrors.mobile = 'Duplicate lead found';
         }
 
         setErrors(prev => ({ ...prev, ...duplicateFieldErrors }));
         setGlobalErrorMessage('Duplicate lead found');
         return;
       }
-
       if (!response.ok) {
-        throw new Error(result.message || `Error ${response.status}`);
+        throw new Error(result.message || Error ${response.status});
       }
 
       // ON SUCCESS:
@@ -364,7 +363,7 @@ function App() {
             <textarea name="description" id="description" value={formData.description} onChange={handleChange} placeholder="Tell us more about your inquiry..."></textarea>
           </div>
 
-          <button type="submit" className={`submit-btn ${loading ? 'loading' : ''}`} disabled={loading}>
+          <button type="submit" className={submit-btn ${loading ? 'loading' : ''}} disabled={loading}>
             {loading ? 'Submitting...' : 'Submit Form'}
           </button>
         </form>
