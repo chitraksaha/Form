@@ -151,7 +151,11 @@ function App() {
         body: JSON.stringify(formData)
       });
 
-      if (!response.ok) throw new Error('Network response was not ok');
+      if (!response.ok) {
+        const errorBody = await response.json();
+        const errorMsg = errorBody.message || "Submission failed. Please try again.";
+        throw new Error(errorMsg);
+      }
 
       const result = await response.json();
       console.log('Lambda response:', result);
