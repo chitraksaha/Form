@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './App.css'; // Ensure your CSS file is correctly linked
 
 // SuccessPage Component - This will be displayed after successful form submission
