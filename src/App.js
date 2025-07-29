@@ -157,9 +157,18 @@ function App() {
       console.log('Lambda response:', result);
 
       if (response.status === 409) {
-      // pick up the message your Lambda returned
-        setGlobalErrorMessage(result.message || 'Duplicate lead detected.');
-        return;  // bail out before the "success" page
+        const message = result.message || '';
+        const isDuplicate = message.toLowerCase().includes('duplicate');
+
+        const duplicateFieldErrors = {};
+        if (isDuplicate) {
+          duplicateFieldErrors.email = 'Duplicate lead found';
+          duplicateFieldErrors.mobile = 'Duplicate lead found';
+        }
+
+        setErrors(prev => ({ ...prev, ...duplicateFieldErrors }));
+        setGlobalErrorMessage('Duplicate lead found');
+        return;
       }
 
       if (!response.ok) {
