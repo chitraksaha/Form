@@ -160,7 +160,7 @@ function App() {
       const result = await response.json();
       console.log('Lambda response:', result);
 
-      if (response.status === 409) {
+      if (response.status === 409|| response.status === 400) {
         const message = result.message || '';
         const isDuplicate = message.toLowerCase().includes('duplicate');
 
