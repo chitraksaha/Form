@@ -56,7 +56,8 @@ function App() {
     mobile: 'eg: 9998887770',
     country: 'eg: India',
     zipcode: 'eg: 700215',
-    hearAbout: 'eg: Search Engine'
+    hearAbout: 'eg: Search Engine',
+    company: 'eg: ABC Pvt Ltd'
   };
 
   const handleChange = (e) => {
