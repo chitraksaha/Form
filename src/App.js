@@ -77,6 +77,7 @@ function App() {
     if (!formData.country.trim()) newErrors.country = 'Country is required';
     if (!formData.zipcode.trim()) newErrors.zipcode = 'Zipcode is required';
     if (!formData.hearAbout) newErrors.hearAbout = 'Please select where you heard about us';
+    if (!formData.company.trim()) newErrors.company = 'Company is required';
     if (!formData.solutionType) newErrors.solutionType = 'Please select a solution type';
 
     if (formData.firstName.trim() && !/^[a-zA-Z\s'-]+$/.test(formData.firstName.trim())) newErrors.firstName = 'Invalid Entry. Enter only characters.';
@@ -199,7 +200,7 @@ function App() {
           <div className="form-group" key={name}>
             <label htmlFor={name}>
               {label}
-              {['salutation', 'firstName', 'lastName', 'email', 'mobile', 'country', 'zipcode', 'hearAbout'].includes(name) && <span className="required">*</span>}
+              {['salutation', 'firstName', 'lastName', 'email', 'mobile', 'country', 'zipcode', 'hearAbout', 'company'].includes(name) && <span className="required">*</span>}
             </label>
             {type === 'select' ? (
               <select
